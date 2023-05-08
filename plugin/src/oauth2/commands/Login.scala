@@ -5,6 +5,7 @@ import org.bukkit.command.Command
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 import oauth2.enableActions
+import oauth2.Config
 
 class Login extends CommandExecutor:
 
@@ -16,6 +17,6 @@ class Login extends CommandExecutor:
   ): Boolean =
     if sender.isInstanceOf[Player] then
       val player = sender.asInstanceOf[Player]
-      player.sendMessage("Go to http://localhost:8080/<your username>")
+      player.sendMessage(s"Go to ${Config.getHost}/${player.getName()}")
       true
     else false
