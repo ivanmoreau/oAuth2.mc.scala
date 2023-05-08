@@ -7,12 +7,28 @@
   outputs = inputs@{ self, nixpkgs, flake-parts, ... }:
     flake-parts.lib.mkFlake { inherit inputs; } {
       systems = nixpkgs.lib.systems.flakeExposed;
-      perSystem = { pkgs, lib, config, system, ... }: {
+      perSystem = { self', pkgs, lib, config, system, ... }: {
+        packages.oauth2 = pkgs.stdenv.mkDerivation {
+          name = "oauth2";
+          src = self;
+          buildInputs = with pkgs; [
+            mill
+          ];
+          buildPhase = ''
+            export HOME=$(mktemp -d)
+            mill --home $HOME -D coursier.home=$HOME/coursier -D ivy.home=$HOME/.ivy2  -D user.home=$HOME plugin.assembly
+          '';
+          installPhase = ''
+            mkdir -p $out/plugins
+            cp out/plugin/assembly.dest/out.jar $out/plugins/oauth2.jar
+          '';
+        };
         devShells.default = pkgs.mkShell {
             buildInputs = with pkgs; [
               mill
             ];
           };
+        packages.default = self'.packages.oauth2;
       };
     };
 }
