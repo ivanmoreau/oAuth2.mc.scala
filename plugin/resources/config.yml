@@ -1,0 +1,3 @@
+googlecreds: "client_secret.json"
+host: "http://localhost"
+port: 80

@@ -1,3 +1,13 @@
-name: CoolPlugin
+name: oauth2
 version: 1.0.0
-main: plugintest.PluginTest
+main: oauth2.Auth
+
+commands:
+   login:
+      description: Your description
+      usage: /login
+      permission: oauth2.login
+
+permissions:
+   oauth2.login:
+      default: true
