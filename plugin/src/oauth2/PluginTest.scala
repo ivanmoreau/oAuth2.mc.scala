@@ -22,7 +22,6 @@ case class GoogleId(val id: Int, val googleId: String)
 class Auth extends JavaPlugin with Listener:
   override def onEnable(): Unit =
     this.saveDefaultConfig()
-    getLogger.info("Hello, world!")
     getServer.getPluginManager.registerEvents(new Joined, this)
     this.getCommand("login").setExecutor(new Login)
     Service.run()
@@ -36,7 +35,6 @@ class Joined extends Listener:
     event.getPlayer.logout
     if event.getPlayer.isNewPlayer then
       Queries.makePlayer(event.getPlayer.getName())
-    event.getPlayer.sendMessage("Hello, world!")
     event.getPlayer.disableActions
 
   @EventHandler

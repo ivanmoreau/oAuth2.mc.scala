@@ -17,6 +17,7 @@ import scala.util.Failure
 import scala.util.Success
 import org.http4s.ember.client.EmberClientBuilder
 import fabric.io.JsonParser
+import org.checkerframework.checker.units.qual.g
 
 object Service:
 
@@ -132,54 +133,59 @@ object Service:
             code
           ) =>
         Bukkit.getLogger().info(s"Got callback from Google for $state")
-        Try {
-          val token = getToken(code).unsafeRunSync()
-          val p = JsonParser(token)("access_token").asString
-          val s = getUserInfoUrl(p).unsafeRunSync()
-          JsonParser(s)("sub").asString
-        } match
-          case Failure(exception) =>
-            Bukkit
-              .getLogger()
-              .info(s"Error: ${exception.getMessage()} for $state")
-            Ok(s"herror!, ${exception.getMessage()}")
-          case Success(sub) =>
-            Bukkit.getLogger().info(s"Success: for $state")
-            val player = Bukkit.getPlayer(state)
-            val id = player.getId.get
-            val maybeUser = Queries.getGoogleId(id)
-            val res = maybeUser match
-              case None =>
+        val token = getToken(code).flatMap(s =>
+          IO(JsonParser(s)("access_token").asString)
+        )
+        val sub = token
+          .flatMap(getUserInfoUrl)
+          .flatMap(s => IO(JsonParser(s)("sub").asString))
+        val res = sub.flatMap { sub =>
+          Bukkit.getLogger().info(s"Success: for $state")
+          val player = Bukkit.getPlayer(state)
+          val id = player.getId.get
+          val maybeUser = Queries.getGoogleId(id)
+          val res = maybeUser match
+            case None =>
+              Bukkit
+                .getLogger()
+                .info(s"New user. Setting google id for $state")
+              Queries.setGoogleId(id)(sub)
+              true
+            case Some(value) =>
+              sub == value
+          if res then
+            Bukkit.getLogger().info(s"Enabling actions for $state")
+            Try(
+              Bukkit
+                .getScheduler()
+                .callSyncMethod(
+                  Bukkit.getPluginManager().getPlugin("oauth2"),
+                  () => player.enableActions
+                )
+            ) match
+              case Failure(exception) =>
                 Bukkit
                   .getLogger()
-                  .info(s"New user. Setting google id for $state")
-                Queries.setGoogleId(id)(sub)
-                true
-              case Some(value) =>
-                sub == value
-            if res then
-              Bukkit.getLogger().info(s"Enabling actions for $state")
-              Try(
-                Bukkit
-                  .getScheduler()
-                  .callSyncMethod(
-                    Bukkit.getPluginManager().getPlugin("oauth2"),
-                    () => player.enableActions
-                  )
-              ) match
-                case Failure(exception) =>
-                  Bukkit
-                    .getLogger()
-                    .info(s"Error: ${exception.getMessage()} for $state")
-                  Ok(
-                    s"Hello, $state!, ${exception.getMessage()}. Report this to an admin!"
-                  )
-                case Success(value) =>
-                  Ok(s"Hello, $state!, you are logged in! Return to minecraft!")
-            else
-              Ok(
-                s"YOU ARE NOT $state! (or something went wrong, try again or contact an admin)"
-              )
+                  .info(s"Error: ${exception.getMessage()} for $state")
+                Ok(
+                  s"Hello, $state!, ${exception.getMessage()}. Report this to an admin!"
+                )
+              case Success(value) =>
+                Ok(s"Hello, $state!, you are logged in! Return to minecraft!")
+          else
+            Ok(
+              s"YOU ARE NOT $state! (or something went wrong, try again or contact an admin)"
+            )
+        }
+
+        res.handleErrorWith(e =>
+          IO {
+            Bukkit
+              .getLogger()
+              .info(s"Error: ${e.getMessage()} for $state")
+          } *>
+            Ok(s"Error: ${e.getMessage()} for $state")
+        )
     }
 
   val routes = (userService <+> callback).adaptErr { err =>
