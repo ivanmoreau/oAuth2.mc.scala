@@ -106,8 +106,13 @@ object Service:
         username
       )
       // Ok(s"Hello, $username!, ${value}, ${url}")
-      Try (
-      Bukkit.getLogger().info(s"$username is trying to identify itself. Redirecting to Google.") )
+      Try(
+        Bukkit
+          .getLogger()
+          .info(
+            s"$username is trying to identify itself. Redirecting to Google."
+          )
+      )
       IO {
         Response[IO]()
           .withStatus(Status.Found)
@@ -134,7 +139,9 @@ object Service:
           JsonParser(s)("sub").asString
         } match
           case Failure(exception) =>
-            Bukkit.getLogger().info(s"Error: ${exception.getMessage()} for $state")
+            Bukkit
+              .getLogger()
+              .info(s"Error: ${exception.getMessage()} for $state")
             Ok(s"herror!, ${exception.getMessage()}")
           case Success(sub) =>
             Bukkit.getLogger().info(s"Success: for $state")
@@ -143,7 +150,9 @@ object Service:
             val maybeUser = Queries.getGoogleId(id)
             val res = maybeUser match
               case None =>
-                Bukkit.getLogger().info(s"New user. Setting google id for $state")
+                Bukkit
+                  .getLogger()
+                  .info(s"New user. Setting google id for $state")
                 Queries.setGoogleId(id)(sub)
                 true
               case Some(value) =>
@@ -159,7 +168,9 @@ object Service:
                   )
               ) match
                 case Failure(exception) =>
-                  Bukkit.getLogger().info(s"Error: ${exception.getMessage()} for $state")
+                  Bukkit
+                    .getLogger()
+                    .info(s"Error: ${exception.getMessage()} for $state")
                   Ok(
                     s"Hello, $state!, ${exception.getMessage()}. Report this to an admin!"
                   )
@@ -173,7 +184,7 @@ object Service:
 
   val routes = (userService <+> callback).adaptErr { err =>
     Bukkit.getLogger().info(s"Error: ${err.getMessage()}")
-    err  
+    err
   }
 
   def run() =

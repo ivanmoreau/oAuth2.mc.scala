@@ -20,7 +20,12 @@ object Queries:
   def setPosition(id: Int)(x: Double, y: Double, z: Double): Unit =
     val q = quote {
       query[PositionPlayer]
-        .insert(_.id -> lift(id), _.x -> lift(x), _.y -> lift(y), _.z -> lift(z))
+        .insert(
+          _.id -> lift(id),
+          _.x -> lift(x),
+          _.y -> lift(y),
+          _.z -> lift(z)
+        )
         .onConflictUpdate(_.id)(
           (t, e) => t.x -> e.x,
           (t, e) => t.y -> e.y,
@@ -39,9 +44,7 @@ object Queries:
     val q = quote {
       query[LoggedPlayer]
         .insert(_.id -> lift(id), _.logged -> lift(logged))
-        .onConflictUpdate(_.id)(
-          (t, e) => t.logged -> e.logged
-        )
+        .onConflictUpdate(_.id)((t, e) => t.logged -> e.logged)
     }
     ctx.run(q)
 

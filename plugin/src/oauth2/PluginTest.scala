@@ -44,4 +44,3 @@ class Joined extends Listener:
     if event.getPlayer.isLogged then
       event.getPlayer.saveLocationToDB
       event.getPlayer.logout
-

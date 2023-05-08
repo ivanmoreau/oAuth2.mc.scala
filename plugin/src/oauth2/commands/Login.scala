@@ -8,7 +8,12 @@ import oauth2.enableActions
 
 class Login extends CommandExecutor:
 
-  override def onCommand(sender: CommandSender, command: Command, label: String, args: Array[String]): Boolean =
+  override def onCommand(
+      sender: CommandSender,
+      command: Command,
+      label: String,
+      args: Array[String]
+  ): Boolean =
     if sender.isInstanceOf[Player] then
       val player = sender.asInstanceOf[Player]
       player.sendMessage("Go to http://localhost:8080/<your username>")
