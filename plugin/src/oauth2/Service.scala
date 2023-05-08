@@ -197,7 +197,7 @@ object Service:
     EmberServerBuilder
       .default[IO]
       .withHost(ipv4"0.0.0.0")
-      .withPort(port"8080")
+      .withPort(Port.fromInt(Config.getPort).get)
       .withHttpApp(routes.orNotFound)
       .build
       .use(_ => IO.never)
