@@ -19,8 +19,8 @@
             mill --home $HOME -D coursier.home=$HOME/coursier -D ivy.home=$HOME/.ivy2  -D user.home=$HOME plugin.assembly
           '';
           installPhase = ''
-            mkdir -p $out/plugins
-            cp out/plugin/assembly.dest/out.jar $out/plugins/oauth2.jar
+            mkdir -p $out/jar
+            cp out/plugin/assembly.dest/out.jar $out/jar/plugin.jar
           '';
         };
         devShells.default = pkgs.mkShell {
