@@ -23,6 +23,42 @@
             cp out/plugin/assembly.dest/out.jar $out/jar/plugin.jar
           '';
         };
+        packages.schemagen = pkgs.stdenv.mkDerivation {
+          name = "SQL Schema Generator";
+          phases = [ "installPhase" ];
+          buildInputs = with pkgs; [
+            sqlite
+          ];
+          installPhase = ''
+            mkdir -p $out/bin
+            echo "${pkgs.sqlite}/bin/sqlite3 authdata.db << EOF
+            CREATE TABLE position_player (
+              id INTEGER PRIMARY KEY,
+              x REAL,
+              y REAL,
+              z REAL
+            );
+
+            CREATE TABLE player_db (
+              name TEXT,
+              id INTEGER PRIMARY KEY
+            );
+
+            CREATE TABLE logged_player (
+              id INTEGER PRIMARY KEY,
+              logged INTEGER
+            );
+
+            CREATE TABLE google_id (
+              id INTEGER PRIMARY KEY,
+              google_id TEXT
+            );
+            EOF" > gen-schema
+            cp gen-schema $out/bin/gen-schema
+            chmod +x $out/bin/gen-schema
+          '';
+        };  
+
         devShells.default = pkgs.mkShell {
             buildInputs = with pkgs; [
               mill
